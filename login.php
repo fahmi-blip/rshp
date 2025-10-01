@@ -1,17 +1,36 @@
 <?php
-require_once "./classes/user.php";
+require_once "dbconnection.php";
+require_once "classes/user.php";
+
+session_start();
 
 if (isset($_POST["email"]) && isset($_POST["password"])) {
     $email = $_POST["email"];
     $password = $_POST["password"];
 
     $user = new User();
-    $user->login($email, $password);
+    $conn = $db->get_connection(); 
+    $loginResult = $user->login($conn, $email, $password);
+
+    if ($loginResult['status'] === 'success') {
+        switch ($loginResult['role']) {
+            case 'Administrator':
+                header("Location: dashboard.php");
+                break;
+            case 'Resepsionis':
+                header("Location: resepsionis.php");
+                break;
+            default:header("Location: dashboard.php"); 
+                break;
+        }
+        exit();
+    } else {
+        $_SESSION["flash_msg"] = $loginResult['message'];
+        header("Location: login.php");
+        exit();
+    }
 }
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

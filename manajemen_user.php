@@ -2,8 +2,18 @@
 include_once("dbconnection.php");
 include_once("./classes/role.php");
 
-$userObj = new Role();
-$users = $userObj->get_all_users($db);
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$conn = $db->get_connection();
+$query = "SELECT u.iduser, u.nama, u.email, p.idpemilik 
+          FROM user u 
+          LEFT JOIN pemilik p ON u.iduser = p.iduser";
+$result = $conn->query($query);
+$users = $result->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,7 +37,7 @@ $users = $userObj->get_all_users($db);
         <table border="1" cellpadding="8" cellspacing="0" style="margin:auto; width:90%;">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th>ID User</th>
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Aksi</th>
@@ -38,8 +48,8 @@ $users = $userObj->get_all_users($db);
                         <?php foreach ($users as $user) { ?>
                     <tr>
                         <td><?php echo $user['iduser']; ?></td>
-                        <td><?php echo $user['nama']; ?></td>
-                        <td><?php echo $user['email']; ?></td>
+                        <td><?php echo htmlspecialchars($user['nama']); ?></td>
+                        <td><?php echo htmlspecialchars($user['email']); ?></td>
                         <td style="text-align: center;">
                             <a href="edit_user.php?id=<?php echo $user['iduser'] ?>" class="edit-btn">Edit</a><br>
                             <a href="reset_password.php?id=<?php echo $user['iduser'] ?>" class="reset-btn">Reset Password</a><br>

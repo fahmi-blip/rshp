@@ -2,17 +2,15 @@
 include_once("dbconnection.php");
 
 $conn = $db->get_connection();
-$query = "SELECT u.nama, u.email, p.no_wa, p.alamat 
-          FROM pemilik p 
-          JOIN user u ON p.iduser = u.iduser";
+$query = "SELECT idkategori, nama_kategori FROM kategori";
 $result = $conn->query($query);
-$pemilik_data = $result->fetch_all(MYSQLI_ASSOC);
+$kategori_data = $result->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Data Pemilik</title>
+    <title>Data Kategori</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +18,7 @@ $pemilik_data = $result->fetch_all(MYSQLI_ASSOC);
     <div class="container">
         <main>
             <div class="header-section">
-                <h2>Data Pemilik</h2>
+                <h2>Data Kategori</h2>
                 <div class="header-actions1">
                     <a href="dmaster.php" class="btn-back">Kembali</a>
                 </div>
@@ -28,25 +26,21 @@ $pemilik_data = $result->fetch_all(MYSQLI_ASSOC);
             <table border="1" cellpadding="8" cellspacing="0" style="margin:auto; width:90%;">
                 <thead>
                     <tr>
-                        <th>Nama</th>
-                        <th>Email</th>
-                        <th>No. WA</th>
-                        <th>Alamat</th>
+                        <th>ID</th>
+                        <th>Nama Kategori</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($pemilik_data)) { ?>
-                        <?php foreach ($pemilik_data as $pemilik) { ?>
+                    <?php if (!empty($kategori_data)) { ?>
+                        <?php foreach ($kategori_data as $kategori) { ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($pemilik['nama']); ?></td>
-                                <td><?php echo htmlspecialchars($pemilik['email']); ?></td>
-                                <td><?php echo htmlspecialchars($pemilik['no_wa']); ?></td>
-                                <td><?php echo htmlspecialchars($pemilik['alamat']); ?></td>
+                                <td><?php echo htmlspecialchars($kategori['idkategori']); ?></td>
+                                <td><?php echo htmlspecialchars($kategori['nama_kategori']); ?></td>
                             </tr>
                         <?php } ?>
                     <?php } else { ?>
                         <tr>
-                            <td colspan="4" style="text-align:center;">Tidak ada data pemilik.</td>
+                            <td colspan="2" style="text-align:center;">Tidak ada data kategori.</td>
                         </tr>
                     <?php } ?>
                 </tbody>

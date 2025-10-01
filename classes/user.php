@@ -43,37 +43,52 @@ class User {
         }
         return $role_aktif;
     }
-    public function login(string $email, string $password): bool {
-        session_start();
+     public function login(mysqli $conn, string $email, string $password): array {
 
-        $admin_email = "admin@mail.com";
-        $admin_password = "123456";
+        $stmt = $conn->prepare("SELECT iduser, nama, password FROM user WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($email === $admin_email && $password === $admin_password) {
-            
-            $this->set_user(1, "administrator", $email, $password);
-
-            $role_admin = new Role();
-            $role_admin->set_role(1,"administrator",true);
-            $this->set_role($role_admin);
-
-            
-            $_SESSION["user"] = [
-                'id'        => $this->iduser,
-                'nama'      => $this->nama,
-                'email'     => $this->email,
-                'role_aktif'=> $this->get_role_aktif()->get_data(),
-                'logged_in' => true
-            ];
-
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $_SESSION["flash_msg"] = "Email atau Password salah!";
-            header("Location: login.php");
-            exit();
+        if ($result->num_rows === 0) {
+            return ["status" => "error", "message" => "Email tidak ditemukan."];
         }
+
+        $userData = $result->fetch_assoc();
+
+        if (!password_verify($password, $userData['password'])) {
+            return ["status" => "error", "message" => "Password salah."];
+        }
+
+        $stmt_role = $conn->prepare(
+            "SELECT r.nama_role 
+             FROM role_user ru 
+             JOIN role r ON ru.idrole = r.idrole 
+             WHERE ru.iduser = ? AND ru.status = 1"
+        );
+        $stmt_role->bind_param("i", $userData['iduser']);
+        $stmt_role->execute();
+        $role_result = $stmt_role->get_result();
+
+        if ($role_result->num_rows === 0) {
+            return ["status" => "error", "message" => "Anda tidak memiliki peran aktif."];
+        }
+        
+        $roleData = $role_result->fetch_assoc();
+        $active_role = $roleData['nama_role'];
+
+        session_start();
+        $_SESSION["user"] = [
+            'id'        => $userData['iduser'],
+            'nama'      => $userData['nama'],
+            'email'     => $email,
+            'role'      => $active_role,
+            'logged_in' => true
+        ];
+
+        return ["status" => "success", "role" => $active_role];
     }
+
     public function register_user($db, string $nama, string $email, string $password): array {
         $conn = $db->get_connection();
 
